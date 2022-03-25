@@ -15,9 +15,20 @@ export default class App extends Component {
 
   writeNoteRef = React.createRef();
   
-  async componentDidMount() {
+  componentDidMount() {
     this.hundleDocumentAddEventListener();
     this.renderNote();
+  }
+
+  ExportText = () => {
+    const noteWriteText = localStorage.getItem('note');
+    const a = document.createElement('a')
+    a.href = `data:text/plain;charset=utf-8,${encodeURIComponent(noteWriteText)}`
+    a.download = "note.txt";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   // utils
@@ -75,7 +86,6 @@ export default class App extends Component {
     const { key, type } = e;
     const { keyCode } = this.state;
     keyCode.push(key)
-    console.log(this.writeNoteRef);
     if(type === 'keydown') {
       if(/alt/i.test(keyCode[0]) && /w/i.test(keyCode[1])) {
         this.setState({
@@ -93,6 +103,9 @@ export default class App extends Component {
     const { noteVisble, editorState, note, currentKey } = this.state;
     return (
       <div className="app">
+        <div style={{ position: 'fixed', width: 'inherit', marginLeft: -16, textAlign: 'center' }}>
+          <Button onClick={this.ExportText}>ExportText</Button>
+        </div>
         <Modal
           visible={noteVisble}
           onOk={() => this.hundleModal('ok')}
@@ -105,24 +118,26 @@ export default class App extends Component {
               ref={ref => this.writeNoteRef = ref}
           />
         </Modal>
-        {
-          note.map(item => (
-            <div
-              onMouseEnter={() => this.setState({ currentKey: item.key })}
-              onMouseLeave={() => this.setState({ currentKey: 0 })}
-              key={item.key}
-            >
-              <Row>
-                <Col span={20}>
-                  <div dangerouslySetInnerHTML={{ __html: item?.noteContent }} style={{ wordBreak: 'break-all' }}></div>
-                </Col>
-                <Col span={4}>
-                  {currentKey === item.key ? <Button danger onClick={() => this.deleteCurrntNoteContent(item.key)}>删除</Button> : ''}
-                </Col>
-              </Row>
-            </div>
-          ))
-        }
+        <div style={{ marginTop: 70 }}>
+          {
+            note.map(item => (
+              <div
+                onMouseEnter={() => this.setState({ currentKey: item.key })}
+                onMouseLeave={() => this.setState({ currentKey: 0 })}
+                key={item.key}
+              >
+                <Row>
+                  <Col span={20}>
+                    <div dangerouslySetInnerHTML={{ __html: item?.noteContent }} style={{ wordBreak: 'break-all' }}></div>
+                  </Col>
+                  <Col span={4}>
+                    {currentKey === item.key ? <Button danger onClick={() => this.deleteCurrntNoteContent(item.key)}>删除</Button> : ''}
+                  </Col>
+                </Row>
+              </div>
+            ))
+          }
+        </div>
       </div>
     );
   }

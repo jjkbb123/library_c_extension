@@ -4,10 +4,19 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "webpack --config ./webpack.config.js",
+    "build": "webpack --config ./webpack.config.js --mode=production",
     "dev": "webpack serve --open "
   },
+  "plugins": [
+    [
+      "@babel/plugin-proposal-decorators",
+      {
+        "legacy": true
+      }
+    ]
+  ],
   "dependencies": {
+    "@babel/plugin-proposal-decorators": "^7.17.8",
     "@babel/preset-react": "^7.16.7",
     "antd": "^4.19.3",
     "braft-editor": "^2.3.9",

@@ -5,11 +5,11 @@
 ```
 yarn build
 ```
-<img src="./note_write/src/assets/chrome_extension_management.jpg" />
+<img src="./src/assets/chrome_extension_management.jpg" />
 然后将该文件夹拖到chrome插件页面
 ## 操作指南
 添加新的篇目：Alt + a</br>
 为该篇目添加文章：Alt + w</br>
 编辑：双击要编辑的文章</br>
 导航栏识别：<b>（默认以h3及粗体字为导航）</b>
-<img src="./note_write/src/assets/demonstrate.gif" />
+<img src="./src/assets/demonstrate.gif" />

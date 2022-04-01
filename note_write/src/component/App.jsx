@@ -7,6 +7,7 @@ import Navigator from "./navgitor";
 import ExportText from "./exportText";
 import NoteCategory from "./noteCategory";
 import NoteCategoryDrawer from "./noteCategoryDrawer";
+import { storageGet, storageSet } from "utils/storage";
 
 export default class App extends Component {
   state = {
@@ -42,11 +43,11 @@ export default class App extends Component {
 
   // utils
   renderNavigator = (title) => {
-    const initNote = JSON.parse(localStorage.getItem("note") || "[]")
-    const note = title ? initNote.find(item => item.title === title)?.content : initNote[0].content;
+    const initNote = JSON.parse(storageGet("note") || "[]")
+    const note = title ? initNote.find(item => item.title === title)?.content : initNote.find(item => item.visible)?.content;
     let reg = /<h3><strong>(\W+|\W+\w+|\w+|\d+\w+|\w+\d+)<\/strong><\/h3>/gi;
     const noteNavigatorList = [];
-    note.forEach((item) => {
+    note?.forEach((item) => {
       const resultList = item.noteContent?.match(reg);
       Array.isArray(resultList) &&
         resultList.forEach((item) => {
@@ -70,8 +71,8 @@ export default class App extends Component {
   }
 
   renderNote = (title) => {
-    const initNote = JSON.parse(localStorage.getItem("note") || '[]')
-    const note = title ? initNote.find(item => item.title === title) : initNote[0];
+    const initNote = JSON.parse(storageGet("note") || '[]')
+    const note = title ? initNote.find(item => item.title === title) : initNote.find(item => item.visible);
     this.setState({
       note,
       currentCategory: note?.title
@@ -81,11 +82,11 @@ export default class App extends Component {
   deleteCurrntNoteContent = (key) => {
     const { currentCategory } = this.state;
     let currentContentIndex;
-    const currentNoteContent = JSON.parse(localStorage.getItem("note") || "[]").find((item, index) => { currentContentIndex = index; return item.title === currentCategory; })?.content;
-    const note = JSON.parse(localStorage.getItem("note") || "[]");
+    const currentNoteContent = JSON.parse(storageGet("note") || "[]").find((item, index) => { currentContentIndex = index; return item.title === currentCategory; })?.content;
+    const note = JSON.parse(storageGet("note") || "[]");
     const filterNote = currentNoteContent.filter((item) => item.key !== key);
     note.splice(currentContentIndex, 1, { title: currentCategory, content: filterNote })
-    localStorage.setItem("note", JSON.stringify(note));
+    storageSet("note", JSON.stringify(note));
     this.setState({
       note: {
         title: currentCategory,
@@ -97,7 +98,7 @@ export default class App extends Component {
   editeCurrentContentKey = (key) => {
     const { currentCategory } = this.state;
     const currentContent = JSON.parse(
-      localStorage.getItem("note") || "[]"
+      storageGet("note") || "[]"
     )
     .find(item => item.title === currentCategory)?.content
     .find((item) => item.key === key);
@@ -117,9 +118,9 @@ export default class App extends Component {
     const { noteVisble, editeKey, currentCategory } = this.state;
     const htmlContent = this.state.editorState.toHTML();
     let currentContentIndex;
-    const currentnote = JSON.parse(localStorage.getItem("note") || "[]").find((item, index) => { currentContentIndex = index ;return item.title === currentCategory });
+    const currentnote = JSON.parse(storageGet("note") || "[]").find((item, index) => { currentContentIndex = index ;return item.title === currentCategory });
     const { content: currentContent } = currentnote
-    const note = JSON.parse(localStorage.getItem("note") || "[]");
+    const note = JSON.parse(storageGet("note") || "[]");
     if (editeKey) {
       const currentEditeContent = currentContent.findIndex(
         (item) => item.key === editeKey
@@ -133,7 +134,7 @@ export default class App extends Component {
     }
     !isNaN(currentContentIndex) && note.splice(currentContentIndex, 1, currentnote)
     this.setState({ note: currentnote });
-    localStorage.setItem("note", JSON.stringify(note));
+    storageSet("note", JSON.stringify(note));
     this.renderNavigator(currentCategory)
     this.setState({
       noteVisble: !noteVisble,
@@ -157,7 +158,7 @@ export default class App extends Component {
 
   hundleCataegoryModal = (type) => {
     const { categoryVisble, currentCategory } = this.state;
-    const note = JSON.parse(localStorage.getItem('note') || '[]')
+    const note = JSON.parse(storageGet('note') || '[]')
     const { getFieldValue, validateFields } = this.formRef?.current || {}
     if(type === 'ok') {
       validateFields(['category'])
@@ -165,9 +166,10 @@ export default class App extends Component {
         val => {
           note.push({
             title: getFieldValue('category'),
+            visible: true,
             content: []
           })
-          localStorage.setItem('note', JSON.stringify(note))
+          storageSet('note', JSON.stringify(note))
           this.setState({
             categoryVisble: !categoryVisble,
             currentCategory: currentCategory ? currentCategory : getFieldValue('category')
@@ -203,8 +205,10 @@ export default class App extends Component {
   isCurrentBody = (key) => this.state.currentKey === key;
 
   setNoteCategory = (e) => {
-    const { value } = e.target;
-
+    const { keyCode } = e;
+    if(keyCode === 13) {
+      this.hundleCataegoryModal('ok')
+    }
   }
   
   writeNote = (e) => {
@@ -213,7 +217,7 @@ export default class App extends Component {
     keyCode.push(key);
     if (type === "keydown") {
       if (/alt/i.test(keyCode[0]) && /^w$/i.test(keyCode[1])) {
-        if(!localStorage.getItem('note')) {
+        if(!storageGet('note') || !JSON.parse(storageGet('note') || '[]').find(item => item.visible)) {
           this.setState({
             categoryVisble: true,
             keyCode: [],
@@ -254,7 +258,7 @@ export default class App extends Component {
         className="app"
         ref={this.appRef}
         onMouseMove={this.hundlePageCoordinate}
-        // onMouseOut={() => this.setState({ navigatorVisble: false })}
+        onMouseLeave={() => this.setState({ navigatorVisble: false })}
       >
         <div
           style={{
@@ -286,7 +290,7 @@ export default class App extends Component {
                 }
               ]}
             >
-              <Input placeholder="输入要添加的篇目" onChange={this.setNoteCategory}/>
+              <Input placeholder="输入要添加的篇目" onKeyUp={this.setNoteCategory} />
             </Form.Item>
           </Form>
         </Modal>

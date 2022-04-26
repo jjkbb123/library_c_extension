@@ -31,7 +31,7 @@ export default class App extends Component {
   componentDidMount() {
     this.hundleDocumentAddEventListener();
     this.renderNote(localStorage.getItem('currentTitle'));
-    this.renderNavigator();
+    this.renderNavigator(localStorage.getItem('currentTitle'));
   }
 
   openNoteCategoryDrawer = () => {
@@ -45,14 +45,15 @@ export default class App extends Component {
   renderNavigator = (title) => {
     const initNote = JSON.parse(storageGet("note") || "[]")
     const note = title ? initNote.find(item => item.title === title)?.content : initNote.find(item => item.visible)?.content;
-    let reg = /<h3><strong>(.*)<\/strong><\/h3>/gi;
+    let reg = /<h3(.*)><strong>(.*)<\/strong><\/h3>/gi;
     const noteNavigatorList = [];
     note?.forEach((item) => {
       const resultList = item.noteContent?.match(reg);
       Array.isArray(resultList) &&
         resultList.forEach((item) => {
-          const result = /<h3><strong>(.*)<\/strong><\/h3>/gi.exec(item);
-          noteNavigatorList.push(result && result[1]);
+          const result = /<h3(.*)><strong>(.*)<\/strong><\/h3>/gi.exec(item);
+          console.log(result);
+          noteNavigatorList.push(result && result[2]);
         });
     });
     this.setState({

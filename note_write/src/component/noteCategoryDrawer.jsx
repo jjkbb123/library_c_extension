@@ -16,12 +16,14 @@ export default class NoteCategoryDrawer extends Component {
 
   setSelectInitValue = () => {
     const note = JSON.parse(storageGet('note') || "[]");
+    const currentTitle = localStorage.getItem('currentTitle');
     this.setState({
-      selectValue: note.find(item => !!item.visible)?.title,
+      selectValue: currentTitle ? note.find(item => item.title === currentTitle)?.title : note.find(item => !!item.visible)?.title,
     });
   };
 
   selectNoteCategory = (title) => {
+    localStorage.setItem('currentTitle', title);
     this.props.selectCategory(title);
     this.setState({
       selectValue: title,
@@ -36,6 +38,7 @@ export default class NoteCategoryDrawer extends Component {
 
   deleteSelectCategory = (e, key) => {
     e.stopPropagation();
+    localStorage.removeItem('currentTitle');
     const note = JSON.parse(storageGet('note') || "[]");
     note.forEach(item => item.title == key ? item.visible = !item.visible : null)
     storageSet('note', JSON.stringify(note))

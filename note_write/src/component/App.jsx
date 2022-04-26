@@ -30,7 +30,7 @@ export default class App extends Component {
   formRef = React.createRef();
   componentDidMount() {
     this.hundleDocumentAddEventListener();
-    this.renderNote();
+    this.renderNote(localStorage.getItem('currentTitle'));
     this.renderNavigator();
   }
 
@@ -45,13 +45,13 @@ export default class App extends Component {
   renderNavigator = (title) => {
     const initNote = JSON.parse(storageGet("note") || "[]")
     const note = title ? initNote.find(item => item.title === title)?.content : initNote.find(item => item.visible)?.content;
-    let reg = /<h3><strong>(\W+|\W+\w+|\w+|\d+\w+|\w+\d+)<\/strong><\/h3>/gi;
+    let reg = /<h3><strong>(.*)<\/strong><\/h3>/gi;
     const noteNavigatorList = [];
     note?.forEach((item) => {
       const resultList = item.noteContent?.match(reg);
       Array.isArray(resultList) &&
         resultList.forEach((item) => {
-          const result = /<h3><strong>(\W+|\W+\w+|\w+|\d+\w+|\w+\d+)<\/strong><\/h3>/gi.exec(item);
+          const result = /<h3><strong>(.*)<\/strong><\/h3>/gi.exec(item);
           noteNavigatorList.push(result && result[1]);
         });
     });
@@ -62,6 +62,7 @@ export default class App extends Component {
 
   // 选择篇目
   selectCategory = (title) => {
+    console.log(title);
     this.renderNote(title)
     this.openNoteCategoryDrawer()
     this.renderNavigator(title)
@@ -71,6 +72,7 @@ export default class App extends Component {
   }
 
   renderNote = (title) => {
+    console.log(title, 'title');
     const initNote = JSON.parse(storageGet("note") || '[]')
     const note = title ? initNote.find(item => item.title === title) : initNote.find(item => item.visible);
     this.setState({
